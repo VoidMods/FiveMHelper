@@ -12,36 +12,45 @@ namespace FiveMHelperClient {
         private void OnClientResourceStart(string resourceName) {
             if (GetCurrentResourceName() != resourceName) return;
 
+            int[,] SentinelClassicMods = {
+                { (int)VehicleModType.Spoilers, 3 },
+                { (int)VehicleModType.Suspension, 1 },
+                { (int)VehicleModType.Exhaust, 3 }
+            };
+
             RegisterCommand("car", new Action<int, List<object>, string>(async (source, args, raw) => {
                 // account for the argument not being passed
-                var model = "sentinel3";
+                string model = "sentinel3";
                 if (args.Count > 0) {
                     model = args[0].ToString();
                 }
 
                 // check if the model actually exists, if not, use Sentinel3
-                var hash = (uint)GetHashKey(model);
+                uint hash = (uint)GetHashKey(model);
                 if (!IsModelInCdimage(hash) || !IsModelAVehicle(hash)) {
                     hash = (uint)GetHashKey("sentinel3");
                 }
 
                 // create the vehicle
-                var vehicle = await World.CreateVehicle(model, Game.PlayerPed.Position, Game.PlayerPed.Heading);
+                Vehicle vehicle = await World.CreateVehicle(model, Game.PlayerPed.Position, Game.PlayerPed.Heading);
+                int vehicleHash = vehicle.GetHashCode();
                 // enable car mods
-                SetVehicleModKit(vehicle.GetHashCode(), 0);
+                SetVehicleModKit(vehicleHash, 0);
                 // set vehicle colors
-                SetVehicleModColor_1(vehicle.GetHashCode(), 3, 0, 0);
-                SetVehicleModColor_2(vehicle.GetHashCode(), 3, 38);
-                // set mods
-                SetVehicleMod(vehicle.GetHashCode(), (int)VehicleModType.Spoilers, 3, false);
-                SetVehicleMod(vehicle.GetHashCode(), (int)VehicleModType.Suspension, 1, false);
-                SetVehicleMod(vehicle.GetHashCode(), (int)VehicleModType.Exhaust, 3, false);
+                SetVehicleModColor_1(vehicleHash, 3, 0, 0);
+                SetVehicleModColor_2(vehicleHash, 3, 38);
+                // if sentinel classic apply mods
+                if (model == "sentinel3") {
+                    // set mods
+                    for (int i = 0; i < SentinelClassicMods.GetLength(0); i++) {
+                        SetVehicleMod(vehicleHash, SentinelClassicMods[i, 0], SentinelClassicMods[i, 1], false);
+                    }
+                }
                 // set vanity plate
-                SetVehicleNumberPlateText(vehicle.GetHashCode(), "0xVoid");                
+                SetVehicleNumberPlateText(vehicleHash, "0xVoid");
                 // set the player ped into the vehicle and driver seat
                 Game.PlayerPed.SetIntoVehicle(vehicle, VehicleSeat.Driver);
             }), false);
-
         }
     }
 }
