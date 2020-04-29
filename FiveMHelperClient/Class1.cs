@@ -17,6 +17,20 @@ namespace FiveMHelperClient {
                 { (int)VehicleModType.Suspension, 1 },
                 { (int)VehicleModType.Exhaust, 3 }
             };
+            int[,] ElegyClassicMods = {
+                { 0, 7 },
+                { 1, 5 },
+                { 3, 3 },
+                { 4, 1 },
+                { 6, 1 },
+                { 7, 5 },
+                { 8, 2 },
+                { 15, 3 },
+                { 25, 0 },
+                { 26, 2 },
+                { 32, 5 },
+                { 33, 7 },
+            };
 
             RegisterCommand("car", new Action<int, List<object>, string>(async (source, args, raw) => {
                 // account for the argument not being passed
@@ -45,11 +59,61 @@ namespace FiveMHelperClient {
                     for (int i = 0; i < SentinelClassicMods.GetLength(0); i++) {
                         SetVehicleMod(vehicleHash, SentinelClassicMods[i, 0], SentinelClassicMods[i, 1], false);
                     }
+                } else if (model == "elegy") {
+                    // set mods
+                    for (int i = 0; i < ElegyClassicMods.GetLength(0); i++) {
+                        SetVehicleMod(vehicleHash, ElegyClassicMods[i, 0], ElegyClassicMods[i, 1], false);
+                    }
                 }
                 // set vanity plate
                 SetVehicleNumberPlateText(vehicleHash, "0xVoid");
                 // set the player ped into the vehicle and driver seat
                 Game.PlayerPed.SetIntoVehicle(vehicle, VehicleSeat.Driver);
+            }), false);
+
+            RegisterCommand("mod", new Action<int, List<object>, string>(async (source, args, raw) => {
+                int playerPed = PlayerPedId();
+
+                if (IsPedInAnyVehicle(playerPed, false)
+                    && !IsPedInAnyBoat(playerPed)
+                    && !IsPedInAnyHeli(playerPed)
+                    && !IsPedInAnyPlane(playerPed)
+                    && !IsPedInAnySub(playerPed)
+                    && !IsPedInAnyTrain(playerPed)
+                    ) {
+                    string mod;
+                    string val;
+                    if (args.Count > 1) {
+                        mod = args[0].ToString();
+                        val = args[1].ToString();
+                        SetVehicleMod(GetVehiclePedIsIn(playerPed, false), Int32.Parse(mod), Int32.Parse(val), false);
+                    }
+                }
+            }), false);
+
+            RegisterCommand("setModel", new Action<int, List<object>, string>(async (source, args, raw) => {
+                // account for the argument not being passed
+                string modelName = "base";
+                if (args.Count > 0) {
+                    modelName = args[0].ToString();
+                }
+                switch (modelName) {
+                    case "baywatch":
+                        modelName = "s_f_y_baywatch_01";
+                        break;
+                    case "normal":
+                        modelName = "s_m_m_ciasec_01";
+                        break;
+                    default:
+                        modelName = "a_c_crow";
+                        break;
+
+                }
+                Model model = new Model(modelName);
+                await Game.Player.ChangeModel(model);
+                model.MarkAsNoLongerNeeded();
+                //SetPedComponentVariation(PlayerPedId(), 0, 0, 0, 0);
+                SetPedDefaultComponentVariation(PlayerPedId());
             }), false);
         }
     }
