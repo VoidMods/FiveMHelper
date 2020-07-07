@@ -89,6 +89,8 @@ namespace FiveMHelperClient {
                     if (args.Count > 1) {
                         mod = args[0].ToString();
                         val = args[1].ToString();
+                        // Make sure vehicle is moddable
+                        SetVehicleModKit(GetVehiclePedIsIn(playerPed, false), 0);
                         SetVehicleMod(GetVehiclePedIsIn(playerPed, false), Int32.Parse(mod), Int32.Parse(val), false);
                     }
                 }
