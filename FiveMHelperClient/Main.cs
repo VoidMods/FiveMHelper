@@ -116,6 +116,14 @@ namespace FiveMHelperClient {
                 model.MarkAsNoLongerNeeded();
                 SetPedDefaultComponentVariation(PlayerPedId());
             }), false);
+
+            RegisterCommand("getPos", new Action<int, List<object>, string>(async (source, args, raw) => {
+                Vector3 playerPos = Game.PlayerPed.Position;
+                TriggerEvent("chat:addMessage", new {
+                    args = new[] { "Player position", playerPos.ToString() }
+                });
+
+            }), false);
         }
     }
 }
